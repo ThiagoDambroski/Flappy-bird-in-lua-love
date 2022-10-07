@@ -7,7 +7,15 @@ VIRTUAL_WIDTH = 512
 VIRUTAL_HEIGHT = 288
 
 local background = love.graphics.newImage('background.png')
+local backgorundCount = 0 
+
 local ground = love.graphics.newImage('ground.png')
+local groundCount = 0
+
+local BACKGROUND_SPEED = 30
+local GROUND_SPEED = 60
+
+local BACKGROUND_LOOPING_POINT = 413
 
 function love.load()
     love.graphics.setDefaultFilter('nearest',"nearest")
@@ -34,10 +42,17 @@ function  love.keypressed(key)
     
 end
 
+function love.update(dt)
+    backgorundCount = (backgorundCount + BACKGROUND_SPEED * dt) % BACKGROUND_LOOPING_POINT
+
+    groundCount = (groundCount + GROUND_SPEED * dt) % VIRTUAL_WIDTH
+    
+end
+
 function love.draw()
     push:start()
-    love.graphics.draw(background,0,0)
+    love.graphics.draw(background,- backgorundCount,0)
 
-    love.graphics.draw(ground,0, VIRUTAL_HEIGHT - 15)
+    love.graphics.draw(ground,- groundCount, VIRUTAL_HEIGHT - 15)
     push:finish()
 end
