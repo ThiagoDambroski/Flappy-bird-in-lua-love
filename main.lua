@@ -6,6 +6,8 @@ require 'Bird'
 
 require 'Pipe'
 
+require 'PipePair'
+
 
 WINDOWNS_WIDHT = 1280
 WINDOWNS_HEIGHT = 720
@@ -26,9 +28,9 @@ local BACKGROUND_LOOPING_POINT = 413
 
 local bird = Bird()
 
-local pipes = {}
+local pipesPairs = {}
 
-
+local lastY = -PIPE_HEIGHT + math.random(80) + 20
 local spawnTimer = 0 
 
 function love.load()
@@ -79,17 +81,21 @@ function love.update(dt)
 
     spawnTimer = spawnTimer + dt
     if spawnTimer > 2 then
-        table.insert(pipes, Pipe())
+        local y = math.max(-PIPE_HEIGHT + 10, 
+        math.min(lastY + math.random(-20,20), VIRUTAL_HEIGHT - 90 - PIPE_HEIGHT))
+        lastY = y
+        
+        table.insert(pipesPairs,PipePair(y))
         spawnTimer = 0
     end
 
     bird:update(dt)
     
-    for k, pipe in pairs(pipes) do
-        pipe:update(dt)
+    for k, pair in pairs(pipesPairs) do
+        pair:update(dt)
         
-        if pipe.x < -pipe.width then
-            table.remove(pipes,k)
+        if pair.remove then
+            table.remove(pipesPairs,k)
         end
     end
 
@@ -100,8 +106,8 @@ function love.draw()
     push:start()
     love.graphics.draw(background,- backgorundCount,0)
 
-    for k, pipe in pairs(pipes) do
-        pipe:render()
+    for k, pair in pairs(pipesPairs) do
+        pair:render()
     end
 
     love.graphics.draw(ground,- groundCount, VIRUTAL_HEIGHT - 15)
