@@ -16,22 +16,28 @@ VIRTUAL_WIDTH = 512
 VIRUTAL_HEIGHT = 288
 
 local background = love.graphics.newImage('background.png')
-local backgorundCount = 0 
+local backgorundScroll = 0 
 
 local ground = love.graphics.newImage('ground.png')
-local groundCount = 0
+local groundScroll = 0
 
-local BACKGROUND_SPEED = 30
-local GROUND_SPEED = 60
+local BACKGROUND_SCROLL_SPEED = 30
+local GROUND_SCROLL_SPEED = 60
 
 local BACKGROUND_LOOPING_POINT = 413
+
+local GROUND_LOOPING_POINT = 514
 
 local bird = Bird()
 
 local pipesPairs = {}
 
-local lastY = -PIPE_HEIGHT + math.random(80) + 20
 local spawnTimer = 0 
+
+local lastY = -PIPE_HEIGHT + math.random(80) + 20
+
+local scrolling = true
+
 
 function love.load()
     love.graphics.setDefaultFilter('nearest',"nearest")
@@ -75,42 +81,52 @@ function love.keyboard.wasPressed(key)
 end
 
 function love.update(dt)
-    backgorundCount = (backgorundCount + BACKGROUND_SPEED * dt) % BACKGROUND_LOOPING_POINT
+    if scrolling then
+        backgorundScroll= (backgorundScroll + BACKGROUND_SCROLL_SPEED * dt) % BACKGROUND_LOOPING_POINT
 
-    groundCount = (groundCount + GROUND_SPEED * dt) % VIRTUAL_WIDTH
+        groundScroll = (groundScroll+ GROUND_SCROLL_SPEED * dt) % VIRTUAL_WIDTH
 
-    spawnTimer = spawnTimer + dt
-    if spawnTimer > 2 then
-        local y = math.max(-PIPE_HEIGHT + 10, 
-        math.min(lastY + math.random(-20,20), VIRUTAL_HEIGHT - 90 - PIPE_HEIGHT))
-        lastY = y
+        spawnTimer = spawnTimer + dt
+
+        if spawnTimer > 2 then
+            local y = math.max(-PIPE_HEIGHT + 10, 
+            math.min(lastY + math.random(-20,20), VIRUTAL_HEIGHT - 90 - PIPE_HEIGHT))
+            lastY = y
         
-        table.insert(pipesPairs,PipePair(y))
-        spawnTimer = 0
-    end
-
-    bird:update(dt)
-    
-    for k, pair in pairs(pipesPairs) do
-        pair:update(dt)
-        
-        if pair.remove then
-            table.remove(pipesPairs,k)
+            table.insert(pipesPairs,PipePair(y))
+            spawnTimer = 0
         end
+
+        bird:update(dt)
+    
+        for k, pair in pairs(pipesPairs) do
+            pair:update(dt)
+
+            for l,pipe in pairs(pair.pipes) do 
+                if bird:collides(pipe) then
+                    scrolling = false
+                end
+            end    
+        
+            if pair.remove then
+                table.remove(pipesPairs,k)
+            end
+        end   
     end
 
     love.keyboard.keysPressed = {}
+    
 end
 
 function love.draw()
     push:start()
-    love.graphics.draw(background,- backgorundCount,0)
+    love.graphics.draw(background,- backgorundScroll,0)
 
     for k, pair in pairs(pipesPairs) do
         pair:render()
     end
 
-    love.graphics.draw(ground,- groundCount, VIRUTAL_HEIGHT - 15)
+    love.graphics.draw(ground,- groundScroll, VIRUTAL_HEIGHT - 15)
 
     bird:render()
     push:finish()
